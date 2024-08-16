@@ -1,0 +1,25 @@
+class Perfil(object):
+    'Classe padrão para perfis de usuários'
+
+    def __init__(self, nome, telefone, empresa):
+        self.nome = nome
+        self.telefone = telefone
+        self.empresa = empresa
+        self._curtidas = 0  # torna a variável privada
+
+    def obter_curtidas(self):
+        return self._curtidas
+
+    def set_curtidas(self, valor):
+        if valor >= 0:
+            self._curtidas = valor
+        else:
+            raise ValueError("Valor de curtidas deve ser positivo")
+
+    def curtir(self):
+        self.set_curtidas(self._curtidas + 1)
+
+perfil = Perfil('Flávio Almeida', 'não informado', 'Caelum')
+perfil.curtir()
+perfil.curtir()
+print(perfil.obter_curtidas())

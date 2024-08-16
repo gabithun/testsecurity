@@ -23,3 +23,50 @@ perfil = Perfil('Flávio Almeida', 'não informado', 'Caelum')
 perfil.curtir()
 perfil.curtir()
 print(perfil.obter_curtidas())
+
+class DadosPerfil(object):
+    def __init__(self, nome, telefone, empresa):
+        self.nome = nome
+        self.telefone = telefone
+        self.empresa = empresa
+
+    def criptografar(self):
+        # Criptografia dos dados do perfil
+        key = Fernet.generate_key()
+        cipher_suite = Fernet(key)
+        encrypted_nome = cipher_suite.encrypt(self.nome.encode())
+        encrypted_telefone = cipher_suite.encrypt(self.telefone.encode())
+        encrypted_empresa = cipher_suite.encrypt(self.empresa.encode())
+        return encrypted_nome, encrypted_telefone, encrypted_empresa
+
+class Perfil(object):
+    def __init__(self, dados_perfil):
+        self.dados_perfil = dados_perfil
+        self._curtidas = 0
+
+    def obter_curtidas(self):
+        return self._curtidas
+
+    def set_curtidas(self, valor):
+        if valor >= 0:
+            self._curtidas = valor
+        else:
+            raise ValueError("Valor de curtidas deve ser positivo")
+
+    def curtir(self):
+        self.set_curtidas(self._curtidas + 1)
+
+    def criptografar_dados(self):
+        return self.dados_perfil.criptografar()
+
+dados_perfil = DadosPerfil('Flávio Almeida', 'não informado', 'Caelum')
+perfil = Perfil(dados_perfil)
+perfil.curtir()
+perfil.curtir()
+print(perfil.obter_curtidas())
+
+# Criptografia dos dados do perfil
+encrypted_nome, encrypted_telefone, encrypted_empresa = perfil.criptografar_dados()
+print(encrypted_nome)
+print(encrypted_telefone)
+print(encrypted_empresa)

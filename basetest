@@ -1,28 +1,13 @@
-class Perfil(object):
-    'Classe padrão para perfis de usuários'
+import hashlib
+from cryptography.fernet import Fernet
+from passlib.context import CryptContext
 
-    def __init__(self, nome, telefone, empresa):
-        self.nome = nome
-        self.telefone = telefone
-        self.empresa = empresa
-        self._curtidas = 0  # torna a variável privada
+# Defina a chave secreta para o Fernet
+key = Fernet.generate_key()
+cipher_suite = Fernet(key)
 
-    def obter_curtidas(self):
-        return self._curtidas
-
-    def set_curtidas(self, valor):
-        if valor >= 0:
-            self._curtidas = valor
-        else:
-            raise ValueError("Valor de curtidas deve ser positivo")
-
-    def curtir(self):
-        self.set_curtidas(self._curtidas + 1)
-
-perfil = Perfil('Flávio Almeida', 'não informado', 'Caelum')
-perfil.curtir()
-perfil.curtir()
-print(perfil.obter_curtidas())
+# Defina o contexto de criptografia para a senha
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], default="pbkdf2_sha256")
 
 class DadosPerfil(object):
     def __init__(self, nome, telefone, empresa):
@@ -30,18 +15,17 @@ class DadosPerfil(object):
         self.telefone = telefone
         self.empresa = empresa
 
-    def criptografar(self):
+    def criptografar(self, cipher_suite):
         # Criptografia dos dados do perfil
-        key = Fernet.generate_key()
-        cipher_suite = Fernet(key)
         encrypted_nome = cipher_suite.encrypt(self.nome.encode())
         encrypted_telefone = cipher_suite.encrypt(self.telefone.encode())
         encrypted_empresa = cipher_suite.encrypt(self.empresa.encode())
         return encrypted_nome, encrypted_telefone, encrypted_empresa
 
 class Perfil(object):
-    def __init__(self, dados_perfil):
+    def __init__(self, dados_perfil, senha):
         self.dados_perfil = dados_perfil
+        self.senha = pwd_context.hash(senha)  # Hash da senha
         self._curtidas = 0
 
     def obter_curtidas(self):
@@ -56,17 +40,31 @@ class Perfil(object):
     def curtir(self):
         self.set_curtidas(self._curtidas + 1)
 
-    def criptografar_dados(self):
-        return self.dados_perfil.criptografar()
+    def criptografar_dados(self, cipher_suite):
+        return self.dados_perfil.criptografar(cipher_suite)
+
+    def autenticar(self, senha):
+        # Autenticação do usuário
+        if pwd_context.verify(senha, self.senha):
+            return True
+        else:
+            return False
 
 dados_perfil = DadosPerfil('Flávio Almeida', 'não informado', 'Caelum')
-perfil = Perfil(dados_perfil)
+perfil = Perfil(dados_perfil, 'minha_senha')
 perfil.curtir()
 perfil.curtir()
 print(perfil.obter_curtidas())
 
 # Criptografia dos dados do perfil
-encrypted_nome, encrypted_telefone, encrypted_empresa = perfil.criptografar_dados()
+encrypted_nome, encrypted_telefone, encrypted_empresa = perfil.criptografar_dados(cipher_suite)
 print(encrypted_nome)
 print(encrypted_telefone)
 print(encrypted_empresa)
+
+# Autenticação do usuário
+senha = 'minha_senha'
+if perfil.autenticar(senha):
+    print("Usuário autenticado com sucesso!")
+else:
+    print("Senha incorreta!")
